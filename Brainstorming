@@ -1,0 +1,15 @@
+GENERAL LINKS
+https://recfaces.com/articles/what-is-gait-recognition
+Steps for gait recognition:
+-Get video (data)
+-Silhouette segmentation
+-Contour detection
+-Feature extraction/classification
+
+https://thedatafrog.com/en/articles/human-detection-video/#:~:text=People%20detection,work%20well%20in%20other%20cases.
+-This one recommends using HOG for detecting humans
+-We also mentioned hog in our proposal
+
+SKELETONIZATION
+-from prof
+https://github.com/mrezanejad/AOFSkeletons
