@@ -1,12 +1,20 @@
 import cv2 as cv
 import numpy as np
+import argparse
+
+# construct the argument parser and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-v", "--video", help="path to the video file")
+args = vars(ap.parse_args())
 
 # Parameters for Shi-Tomasi corner detection
 feature_params = dict(maxCorners = 300, qualityLevel = 0.2, minDistance = 2, blockSize = 7)
 # Parameters for Lucas-Kanade optical flow
 lk_params = dict(winSize = (15,15), maxLevel = 2, criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03))
 # The video feed is read in as a VideoCapture object
-cap = cv.VideoCapture("arman_walking.mp4")
+cap = cv.VideoCapture(args["video"])
+size = (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)),
+        int(cap.get(cv.CAP_PROP_FRAME_HEIGHT)))
 # Variable for color to draw optical flow track
 color = (0, 255, 0)
 # ret = a boolean return value from getting the frame, first_frame = the first frame in the entire video sequence
@@ -22,10 +30,15 @@ prev = cv.goodFeaturesToTrack(prev_gray, mask = None, **feature_params)
 
 # Creates an image filled with zero intensities with the same dimensions as the frame - for later drawing purposes
 mask = np.zeros_like(first_frame)
+frame_array = []
+
 
 while(cap.isOpened()):
     # ret = a boolean return value from getting the frame, frame = the current frame being projected in the video
     ret, frame = cap.read()
+    if frame is None:
+        break
+    frame = cv.flip(frame, -1)
     # Converts each frame to grayscale - we previously only converted the first frame to grayscale
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     # Calculates sparse optical flow by Lucas-Kanade method
@@ -56,9 +69,20 @@ while(cap.isOpened()):
     prev = good_new.reshape(-1, 1, 2)
     # Opens a new window and displays the output frame
     cv.imshow("sparse optical flow", output)
+    frame_array.append(output)
     # Frames are read by intervals of 10 milliseconds. The programs breaks out of the while loop when the user presses the 'q' key
     if cv.waitKey(10) & 0xFF == ord('q'):
         break
 # The following frees up resources and closes all windows
 cap.release()
 cv.destroyAllWindows()
+
+
+
+print(len(frame_array))
+cv.imshow("stuff", frame_array[1])
+
+out = cv.VideoWriter('sparse_detection.mkv',cv.VideoWriter_fourcc(*'XVID'), 15, size)
+for i in range(len(frame_array)):
+    out.write(frame_array[i])
+out.release()

@@ -1,9 +1,14 @@
 import cv2 as cv
 import numpy as np
+import argparse
+
+# construct the argument parser and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-v", "--video", help="path to the video file")
+args = vars(ap.parse_args())
 
 # The video feed is read in as a VideoCapture object
-print(cv.__version__)
-cap = cv.VideoCapture("../images/mia_walking.mp4")
+cap = cv.VideoCapture(args["video"])
 size = (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)),
         int(cap.get(cv.CAP_PROP_FRAME_HEIGHT)))
 # ret = a boolean return value from getting the frame, first_frame = the first frame in the entire video sequence
@@ -20,8 +25,10 @@ frame_array = []
 while(cap.isOpened()):
     # ret = a boolean return value from getting the frame, frame = the current frame being projected in the video
     ret, frame = cap.read()
-    # Flip Frame
-    # frame = cv.flip(frame, -1)
+    if frame is None:
+        break
+    # Flip Frame if Needed
+    frame = cv.flip(frame, -1)
     # Opens a new window and displays the input frame
     cv.imshow("input", frame)
     frame = frame.astype("uint8")
@@ -42,9 +49,14 @@ while(cap.isOpened()):
     print(spec_mask.shape)
     spec_mask = spec_mask.resize((1922, 1080))
     rgb = rgb.astype("uint8")
+    
+    # Different tested method for color filling
+    
     #cv.drawContours(rgb, flow, -1, color=(255, 255, 255), thickness=cv.FILLED)
     #cv.fillPoly(rgb, flow, color=(255, 255, 255))
     #cv.floodFill(rgb, spec_mask, (1000, 600), 255)
+    
+    
     # Opens a new window and displays the output frame
     cv.imshow("dense optical flow", rgb)
     frame_array.append(rgb)
@@ -60,7 +72,7 @@ cap.release()
 cv.destroyAllWindows()
 print("Exited properly")
 
-out = cv.VideoWriter('project.mkv',cv.VideoWriter_fourcc(*'XVID'), 15, size)
+out = cv.VideoWriter('dense_detection.mkv',cv.VideoWriter_fourcc(*'XVID'), 15, size)
 for i in range(len(frame_array)):
     out.write(frame_array[i])
 out.release()
